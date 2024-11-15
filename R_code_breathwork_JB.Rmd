@@ -1,0 +1,559 @@
+---
+title: "R_code_breathwork_JB"
+author: "Jelena Brasanac"
+date: "2024-11-13"
+output: html_document
+---
+
+```{r}
+# Load necessary packages
+library(readxl)
+library(ggplot2)
+library(writexl)
+library(dplyr)
+library(xlsx)
+library(corrplot)
+library(gridExtra)
+library(grid)
+library(Hmisc)
+library(readxl)
+library(writexl)
+library(effsize)
+```
+
+```{r}
+#Psychological effects
+#Correlations CO2, 11DASC subscales, MEQ and QIDS, WEMWBS 
+
+# Load the Excel file (adjust file path as necessary)
+file_path <- "C:/Users/jelen/OneDrive/Desktop/R code respository/11DASC_CO2_psychology.xlsx"
+data <- read_excel(file_path)
+
+#Spearman rank correlation
+corrs <- cor(data[,unlist(lapply(data, is.numeric))],method="spearman")
+corrs
+
+#plot correlogram
+corrplot(corrs, type="upper", order="original")
+#export as A4
+
+res2 <- rcorr(as.matrix(data),type="spearman")
+res2
+
+# Extract the correlation coefficients
+res2$r
+# Extract p-values
+res2$P
+
+write.xlsx(res2$P, file = "myworkbook_spearman_predictors_psychology_pval.xlsx",
+           sheetName = "pval", append = FALSE)
+
+write.xlsx(res2$r, file = "myworkbook_spearman_predictors_psychology_rho.xlsx",
+           sheetName = "rho", append = FALSE)
+
+```
+
+```{r}
+#Physiological effects
+#Correlations cCO2, 11DASC subscales and biomarkers
+
+# Load the Excel file (adjust file path as necessary)
+file_path <- "C:/Users/jelen/OneDrive/Desktop/R code respository/11DASC_CO2_biomarkers_LN.xlsx"
+data <- read_excel(file_path)
+
+#dealing with missing values
+na.omit(data)
+data <-na.omit(data) 
+
+#Spearman correlation
+corrs <- cor(data[,unlist(lapply(data, is.numeric))],method="spearman")
+corrs
+
+#plot correlogram
+corrplot(corrs, type="upper", order="original")
+#export as A4
+
+res2 <- rcorr(as.matrix(data),type="spearman")
+res2
+
+# Extract the correlation coefficients
+res2$r
+# Extract p-values
+res2$P
+
+write.xlsx(res2$P, file = "myworkbook_spearman_predictors_biomarkers_pval.xlsx",
+           sheetName = "pval", append = FALSE)
+
+write.xlsx(res2$r, file = "myworkbook_spearman_predictors_biomarkers_rho.xlsx",
+           sheetName = "rho", append = FALSE)
+```
+
+```{r}
+#ttests a-amylase pre vs post breathwork session
+
+#active breathers
+data <- read_excel("breathwork_ELISA_amylase_active_ln.xlsx")
+res <- t.test(amylase_ln ~ session, data = data, paired = TRUE)
+res
+
+# Extract means and standard deviations for each session
+mean_before <- mean(data$amylase_ln[data$session == "1_before"], na.rm = TRUE)
+mean_after <- mean(data$amylase_ln[data$session == "2_after"], na.rm = TRUE)
+sd_before <- sd(data$amylase_ln[data$session == "1_before"], na.rm = TRUE)
+sd_after <- sd(data$amylase_ln[data$session == "2_after"], na.rm = TRUE)
+
+# Calculate Cohen's d
+pooled_sd <- sqrt(((length(data$amylase_ln[data$session == "1_before"]) - 1) * sd_before^2 + (length(data$amylase_ln[data$session == "2_after"]) - 1) * sd_after^2) / (length(data$amylase_ln) - 2))
+cohen_d <- (mean_before - mean_after) / pooled_sd
+
+# Print Cohen's d
+print(cohen_d)
+
+#passive breathers
+data <- read_excel("breathwork_ELISA_amylase_passive_ln.xlsx")
+res <- t.test(amylase_ln ~ session, data = data, paired = TRUE)
+res
+
+# Extract means and standard deviations for each session
+mean_before <- mean(data$amylase_ln[data$session == "1_before"], na.rm = TRUE)
+mean_after <- mean(data$amylase_ln[data$session == "2_after"], na.rm = TRUE)
+sd_before <- sd(data$amylase_ln[data$session == "1_before"], na.rm = TRUE)
+sd_after <- sd(data$amylase_ln[data$session == "2_after"], na.rm = TRUE)
+
+# Calculate Cohen's d
+pooled_sd <- sqrt(((length(data$amylase_ln[data$session == "1_before"]) - 1) * sd_before^2 + (length(data$amylase_ln[data$session == "2_after"]) - 1) * sd_after^2) / (length(data$amylase_ln) - 2))
+cohen_d <- (mean_before - mean_after) / pooled_sd
+
+# Print Cohen's d
+print(cohen_d)
+```
+
+```{r}
+##ttests IL1b pre vs post breathwork session
+
+#active breathers
+data <- read_excel("breathwork_ELISA_IL1b_active_ln.xlsx")
+res <- t.test(IL1b_ln ~ session, data = data, paired = TRUE)
+res
+
+# Extract means and standard deviations for each session
+mean_before <- mean(data$IL1b_ln[data$session == "1_before"], na.rm = TRUE)
+mean_after <- mean(data$IL1b_ln[data$session == "2_after"], na.rm = TRUE)
+sd_before <- sd(data$IL1b_ln[data$session == "1_before"], na.rm = TRUE)
+sd_after <- sd(data$IL1b_ln[data$session == "2_after"], na.rm = TRUE)
+
+# Calculate Cohen's d
+pooled_sd <- sqrt(((length(data$IL1b_ln[data$session == "1_before"]) - 1) * sd_before^2 + (length(data$IL1b_ln[data$session == "2_after"]) - 1) * sd_after^2) / (length(data$IL1b_ln) - 2))
+cohen_d <- (mean_before - mean_after) / pooled_sd
+
+# Print Cohen's d
+print(cohen_d)
+
+#passive breathers
+data <- read_excel("breathwork_ELISA_IL1b_passive_ln.xlsx")
+res <- t.test(IL1b_ln ~ session, data = data, paired = TRUE)
+res
+
+# Extract means and standard deviations for each session
+mean_before <- mean(data$IL1b_ln[data$session == "1_before"], na.rm = TRUE)
+mean_after <- mean(data$IL1b_ln[data$session == "2_after"], na.rm = TRUE)
+sd_before <- sd(data$IL1b_ln[data$session == "1_before"], na.rm = TRUE)
+sd_after <- sd(data$IL1b_ln[data$session == "2_after"], na.rm = TRUE)
+
+# Calculate Cohen's d
+pooled_sd <- sqrt(((length(data$IL1b_ln[data$session == "1_before"]) - 1) * sd_before^2 + (length(data$IL1b_ln[data$session == "2_after"]) - 1) * sd_after^2) / (length(data$IL1b_ln) - 2))
+cohen_d <- (mean_before - mean_after) / pooled_sd
+
+# Print Cohen's d
+print(cohen_d)
+
+```
+
+```{r}
+# Linear mixed model
+
+# Load necessary packages
+library(lme4)
+library(lmerTest)  # for p-values
+library(bslib)
+library(nlme)
+
+# Load the Excel file (adjust file path as necessary)
+file_path <- "C:/Users/jelen/OneDrive/Desktop/R code respository/data_mixedm.xlsx"
+data <- read_excel(file_path)
+
+# Filter data by Active_breath status
+active_data <- subset(data, Active_breath == 1)
+passive_data <- subset(data, Active_breath == 0)
+
+# Fit the model for both active and passive participants
+model_active <- lmer(Experience_Depth ~ etCO2 + (1 | ID), data = active_data)
+summary(model_active)
+model_passive <- lmer(Experience_Depth ~ etCO2 + (1 | ID), data = passive_data)
+summary(model_passive)
+
+####including time as predictor###
+model_active_time <- lmer(Experience_Depth ~ etCO2 + Time + (1 | ID), data = active_data)
+summary(model_active_time)
+model_passive_time <- lmer(Experience_Depth ~ etCO2 + Time + (1 | ID), data = passive_data)
+summary(model_passive_time)
+```
+
+```{r}
+# Correlation at each time point
+
+# Filter out rows with missing data
+data_clean <- data %>%
+  filter(!is.na(Experience_Depth), !is.na(etCO2))
+
+# Calculate correlations by time
+correlations_by_time_clean <- data_clean %>%
+  group_by(Time) %>%
+  summarise(
+    correlation = cor(Experience_Depth, etCO2, method = "pearson"),
+    p_value = cor.test(Experience_Depth, etCO2, method = "pearson")$p.value
+  )
+print(correlations_by_time_clean)
+```
+
+```{r}
+# Plot
+# Filter data for active and passive participants
+data$Status <- ifelse(data$Active_breath == 1, "Active", "Passive")
+
+# Define custom colors
+custom_colors <- c("Active" = "purple4", "Passive" = "orchid")
+
+# Plot the interaction for each time point separately
+ggplot(data, aes(x = etCO2, y = Experience_Depth, color = Status)) +
+  geom_point(shape = 1, alpha = 0) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~ Time, scales = "free_y", nrow = 1) +
+  scale_color_manual(values = custom_colors) +
+  labs(x = "etCO2", y = "Experience Depth", color = "Status") +
+  theme_minimal() +
+  theme(panel.grid = element_blank(), panel.border = element_rect(color = "black", fill = NA))
+
+```
+
+```{r}
+# Separately for Holotropic and Conscious-Connected Breathwork
+
+# Filter data for Holotropic Breathwork (0)
+data_holotropic <- data %>% filter(Breathwork_type == 0)
+
+model_holo_time <- lmer(Experience_Depth ~ etCO2 + Time + (1 | ID), data = data_holotropic)
+summary(model_holo_time)
+
+# Filter data for Connected Breathwork (1)
+data_connected <- data %>% filter(Breathwork_type == 1)
+
+model_connected_time <- lmer(Experience_Depth ~ etCO2 + Time + (1 | ID), data = data_connected)
+summary(model_connected_time)
+
+
+# Define custom colors
+custom_colors_holotropic <- c("Active" = "blue3", "Passive" = "lightblue")
+custom_colors_connected <- c("Active" = "red3", "Passive" = "pink")
+
+# Filter data for Holotropic Breathwork (0)
+data_holotropic <- data %>% filter(Breathwork_type == 0) 
+
+# Filter data for Connected Breathwork (1)
+data_connected <- data %>% filter(Breathwork_type == 1) 
+
+# Plot for Holotropic Breathwork
+plot_holotropic <- ggplot(data_holotropic, aes(x = etCO2, y = Experience_Depth, color = Status)) +
+  geom_point(shape = 1, alpha = 0.6) +  # Shape 1 for open circles
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~ Time, scales = "free_y", nrow = 1) +
+  scale_color_manual(values = custom_colors_holotropic) +
+  ylim(1, 5) +  # Set y-axis limits
+  labs(x = "etCO2", y = "Experience Depth", color = "Status", title = "Holotropic Breathwork") +
+  theme_minimal() +
+  theme(panel.grid = element_blank(), panel.border = element_rect(color = "black", fill = NA))
+
+# Plot for Connected Breathwork
+plot_connected <- ggplot(data_connected, aes(x = etCO2, y = Experience_Depth, color = Status)) +
+  geom_point(shape = 1, alpha = 0.6) +  # Shape 1 for open circles
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~ Time, scales = "free_y", nrow = 1) +
+  scale_color_manual(values = custom_colors_connected) +
+  ylim(1, 5) +  # Set y-axis limits
+  labs(x = "etCO2", y = "Experience Depth", color = "Status", title = "Connected Breathwork") +
+  theme_minimal() +
+  theme(panel.grid = element_blank(), panel.border = element_rect(color = "black", fill = NA))
+
+# Display the plots side by side
+grid.arrange(plot_holotropic, plot_connected, nrow = 2)
+```
+
+```{r}
+# Supllementary Table S1
+# Load the Excel file (adjust file path as necessary)
+file_path <- "C:/Users/jelen/OneDrive/Desktop/R code respository/breathwork_11DASC_ELISA.xlsx"
+data <- read_excel(file_path)
+
+#gender for table 1
+#active
+filtered_data <- data %>%
+  filter(gender == 0, breathwork == "Holo", active_breather == 1)
+num_male_active_holo <- nrow(filtered_data)
+print(num_male_active_holo)
+
+filtered_data <- data %>%
+  filter(gender == 1, breathwork == "Holo", active_breather == 1)
+num_female_active_holo <- nrow(filtered_data)
+print(num_female_active_holo)
+
+filtered_data <- data %>%
+  filter(gender == 0, breathwork == "Connect", active_breather == 1)
+num_male_active_connect <- nrow(filtered_data)
+print(num_male_active_connect)
+
+filtered_data <- data %>%
+  filter(gender == 1, breathwork == "Connect", active_breather == 1)
+num_female_active_connect <- nrow(filtered_data)
+print(num_female_active_connect)
+
+#passive
+filtered_data <- data %>%
+  filter(gender == 0, breathwork == "Holo", active_breather == 0)
+num_male_passive_holo <- nrow(filtered_data)
+print(num_male_passive_holo)
+
+filtered_data <- data %>%
+  filter(gender == 1, breathwork == "Holo", active_breather == 0)
+num_female_passive_holo <- nrow(filtered_data)
+print(num_female_passive_holo)
+
+filtered_data <- data %>%
+  filter(gender == 0, breathwork == "Connect", active_breather == 0)
+num_male_passive_connect <- nrow(filtered_data)
+print(num_male_passive_connect)
+
+filtered_data <- data %>%
+  filter(gender == 1, breathwork == "Connect", active_breather == 0)
+num_female_passive_connect <- nrow(filtered_data)
+print(num_female_passive_connect)
+
+filtered_data <- data %>%
+  filter(gender == 2, breathwork == "Connect", active_breather == 0)
+num_nonbinary_passive_connect <- nrow(filtered_data)
+print(num_nonbinary_passive_connect)
+
+filtered_data <- data %>%
+  filter(gender == 2)
+num_nonbinary <- nrow(filtered_data)
+print(num_nonbinary)
+
+#age for table 1
+#active
+filtered_data <- data %>%
+  filter(breathwork == "Holo", active_breather == 1)
+mean_age_holo_active <- mean(filtered_data$age, na.rm = TRUE)
+sd_age_holo_active <- sd(filtered_data$age, na.rm = TRUE)
+cat("Mean Age for Holo Active Breathers:", mean_age_holo_active, "\n")
+cat("Standard Deviation of Age for Holo Active Breathers:", sd_age_holo_active, "\n")
+
+filtered_data <- data %>%
+  filter(breathwork == "Connect", active_breather == 1)
+mean_age_connect_active <- mean(filtered_data$age, na.rm = TRUE)
+sd_age_connect_active <- sd(filtered_data$age, na.rm = TRUE)
+cat("Mean Age for Connect Active Breathers:", mean_age_connect_active, "\n")
+cat("Standard Deviation of Age for Connect Active Breathers:", sd_age_connect_active, "\n")
+
+#passive
+filtered_data <- data %>%
+  filter(breathwork == "Holo", active_breather == 0)
+mean_age_holo_passive <- mean(filtered_data$age, na.rm = TRUE)
+sd_age_holo_passive <- sd(filtered_data$age, na.rm = TRUE)
+cat("Mean Age for Holo Passive Breathers:", mean_age_holo_passive, "\n")
+cat("Standard Deviation of Age for Holo Passive Breathers:", sd_age_holo_passive, "\n")
+
+filtered_data <- data %>%
+  filter(breathwork == "Connect", active_breather == 0)
+mean_age_connect_passive <- mean(filtered_data$age, na.rm = TRUE)
+sd_age_connect_passive <- sd(filtered_data$age, na.rm = TRUE)
+cat("Mean Age for Connect Passive Breathers:", mean_age_connect_passive, "\n")
+cat("Standard Deviation of Age for Connect Passive Breathers:", sd_age_connect_passive, "\n")
+
+#employment for table 1
+#Holo
+filtered_data <- data %>%
+  filter(work_status == 3, breathwork == "Holo", active_breather == 1)
+num_employed_active_holo <- nrow(filtered_data)
+print(num_employed_active_holo)
+
+filtered_data <- data %>%
+  filter(work_status == 2, breathwork == "Holo", active_breather == 1)
+num_selfemployed_active_holo <- nrow(filtered_data)
+print(num_selfemployed_active_holo)
+
+filtered_data <- data %>%
+  filter(work_status == 1, breathwork == "Holo", active_breather == 1)
+num_ineducation_active_holo <- nrow(filtered_data)
+print(num_ineducation_active_holo)
+
+filtered_data <- data %>%
+  filter(work_status == 0, breathwork == "Holo", active_breather == 1)
+num_unemployed_active_holo <- nrow(filtered_data)
+print(num_unemployed_active_holo)
+
+#passive
+filtered_data <- data %>%
+  filter(work_status == 3, breathwork == "Holo", active_breather == 0)
+num_employed_passive_holo <- nrow(filtered_data)
+print(num_employed_passive_holo)
+
+filtered_data <- data %>%
+  filter(work_status == 2, breathwork == "Holo", active_breather == 0)
+num_selfemployed_passive_holo <- nrow(filtered_data)
+print(num_selfemployed_passive_holo)
+
+filtered_data <- data %>%
+  filter(work_status == 1, breathwork == "Holo", active_breather == 0)
+num_ineducation_passive_holo <- nrow(filtered_data)
+print(num_ineducation_passive_holo)
+
+filtered_data <- data %>%
+  filter(work_status == 0, breathwork == "Holo", active_breather == 0)
+num_unemployed_passive_holo <- nrow(filtered_data)
+print(num_unemployed_passive_holo)
+
+#Connect
+filtered_data <- data %>%
+  filter(work_status == 3, breathwork == "Connect", active_breather == 1)
+num_employed_active_connect <- nrow(filtered_data)
+print(num_employed_active_connect)
+
+filtered_data <- data %>%
+  filter(work_status == 2, breathwork == "Connect", active_breather == 1)
+num_selfemployed_active_connect <- nrow(filtered_data)
+print(num_selfemployed_active_connect)
+
+filtered_data <- data %>%
+  filter(work_status == 1, breathwork == "Connect", active_breather == 1)
+num_ineducation_active_connect <- nrow(filtered_data)
+print(num_ineducation_active_connect)
+
+filtered_data <- data %>%
+  filter(work_status == 0, breathwork == "Connect", active_breather == 1)
+num_unemployed_active_connect <- nrow(filtered_data)
+print(num_unemployed_active_connect)
+
+#passive
+filtered_data <- data %>%
+  filter(work_status == 3, breathwork == "Connect", active_breather == 0)
+num_employed_passive_connect <- nrow(filtered_data)
+print(num_employed_passive_connect)
+
+filtered_data <- data %>%
+  filter(work_status == 2, breathwork == "Connect", active_breather == 0)
+num_selfemployed_passive_connect <- nrow(filtered_data)
+print(num_selfemployed_passive_connect)
+
+filtered_data <- data %>%
+  filter(work_status == 1, breathwork == "Connect", active_breather == 0)
+num_ineducation_passive_connect <- nrow(filtered_data)
+print(num_ineducation_passive_connect)
+
+filtered_data <- data %>%
+  filter(work_status == 0, breathwork == "Connect", active_breather == 0)
+num_unemployed_passive_connect <- nrow(filtered_data)
+print(num_unemployed_passive_connect)
+
+```
+
+```{r}
+#Normality check
+# Load the Excel file (adjust file path as necessary)
+file_path <- "C:/Users/jelen/OneDrive/Desktop/R code respository/normality_check_data_full.xlsx"
+data <- read_excel(file_path)
+
+# Check for missing values in the relevant columns
+missing_values <- sum(is.na(data))
+print(paste("Number of missing values in the entire dataset:", missing_values))
+
+# Filter out rows with NA values in any of the numeric columns
+data_clean <- data[complete.cases(data), ]  # Removes rows with any NA values
+
+# Check dimensions of cleaned data
+print(dim(data_clean))  # Ensure the number of rows is consistent after cleaning
+
+# Apply Shapiro-Wilk test to all numeric columns
+shapiro_results <- sapply(data_clean, function(column) {
+  if (is.numeric(column)) {
+    test_result <- shapiro.test(column)
+    return(c(W_statistic = test_result$statistic, p_value = test_result$p.value))
+  } else {
+    return(c(W_statistic = NA, p_value = NA))  # Non-numeric columns are skipped
+  }
+})
+
+# Transpose the result for better readability
+shapiro_results <- t(shapiro_results)
+
+# Print the results
+print(shapiro_results)
+
+```
+
+```{r}
+
+#checking normality for min CO2 and max Experience Depth
+
+# Calculating min CO2 and max B_hand for each participant
+data$min_CO2 <- apply(data[, c("B_CO2_1", "B_CO2_2", "B_CO2_3")], 1, min, na.rm = TRUE)
+data$max_B_hand <- apply(data[, c("B_hand_1", "B_hand_2", "B_hand_3")], 1, max, na.rm = TRUE)
+
+# Displaying the result
+result <- data[, c("min_CO2", "max_B_hand")]
+print(result)
+
+# Convert to data frame and print
+print(as.data.frame(result))
+
+# Shapiro-Wilk normality test for min_CO2 and max_B_hand
+shapiro_min_CO2 <- shapiro.test(data$min_CO2)
+shapiro_max_B_hand <- shapiro.test(data$max_B_hand)
+
+# Print results of the Shapiro-Wilk tests
+print(shapiro_min_CO2)
+print(shapiro_max_B_hand)
+
+```
+
+```{r}
+# checking normality for MEQ and psychology datasets
+
+# Load the Excel file (adjust file path as necessary)
+file_path <- "C:/Users/jelen/OneDrive/Desktop/R code respository/normality_check_data_MEQ_psychology.xlsx"
+data_MEQ_psychology <- read_excel(file_path)
+
+# Check for missing values in the relevant columns in the full dataset
+missing_values <- sum(is.na(data_MEQ_psychology))
+print(paste("Number of missing values in the entire dataset:", missing_values))
+
+# Filter out rows with NA values in any of the numeric columns for the full dataset
+data_clean_MEQ_psychology <- data_MEQ_psychology[complete.cases(data_MEQ_psychology), ]
+
+# Check dimensions of the cleaned full dataset
+print(dim(data_clean_MEQ_psychology))  # Should show the number of rows after cleaning
+
+# Apply Shapiro-Wilk test to all numeric columns in the cleaned dataset
+shapiro_results_MEQ_psychology <- sapply(data_clean_MEQ_psychology, function(column) {
+  if (is.numeric(column)) {
+    test_result <- shapiro.test(column)
+    return(c(W_statistic = test_result$statistic, p_value = test_result$p.value))
+  } else {
+    return(c(W_statistic = NA, p_value = NA))  # Non-numeric columns are skipped
+  }
+})
+
+# Transpose the result for better readability
+shapiro_results_MEQ_psychology <- t(shapiro_results_MEQ_psychology)
+
+# Print the Shapiro-Wilk test results
+print(shapiro_results_MEQ_psychology)
+```
