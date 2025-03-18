@@ -13,6 +13,7 @@ ntotal = length(breathvector);%61
 nholo = length(find(holconvector==1)); %30
 nconcon = length(find(holconvector==2)); %31
 
+
 %% Figure 1a-b
 co2means = nanmean(co2times(:,sessionpeakwindow)')';
 co2minimums = min(co2times(:,sessionpeakwindow)')';
@@ -35,14 +36,31 @@ ylim([0 55])
 % nanmean(co2minimums(breathvector==2))
 % nanstd(co2minimums(breathvector==2))/sqrt(nofactive)
 
+
+% Stats for mean CO2 saturation
 [p,tbl,stats] = anovan(co2means,{breathvector,holconvector},'model','interaction','varnames',{'passive-active','hol-conn'});
-computecohensd(nofpassive, nanmean(co2means(breathvector==1)), nanstd(co2means(breathvector==1)), nofactive, nanmean(co2means(breathvector==2)), nanstd(co2means(breathvector==2)))
-computecohensd(nholo, nanmean(co2means(holconvector==1)), nanstd(co2means(holconvector==1)), nconcon, nanmean(co2means(holconvector==2)), nanstd(co2means(holconvector==2)))
 
+[cohensd, cilow, cihigh] = computecohensd(nofpassive, nanmean(co2means(breathvector==1)), nanstd(co2means(breathvector==1)), nofactive, nanmean(co2means(breathvector==2)), nanstd(co2means(breathvector==2)))
+temp = bf.ttest2(co2means(breathvector==1),co2means(breathvector==2));
+bf01 = 1/temp
+
+[cohensd, cilow, cihigh] = computecohensd(nholo, nanmean(co2means(holconvector==1)), nanstd(co2means(holconvector==1)), nconcon, nanmean(co2means(holconvector==2)), nanstd(co2means(holconvector==2)))
+temp = bf.ttest2(co2means(holconvector==1),co2means(holconvector==2));
+bf01 = 1/temp
+
+
+% Stats for minimum CO2 saturation
 [p,tbl,stats] = anovan(co2minimums,{breathvector,holconvector},'model','interaction','varnames',{'passive-active','hol-conn'});
-computecohensd(nofpassive, nanmean(co2minimums(breathvector==1)), nanstd(co2minimums(breathvector==1)), nofactive, nanmean(co2minimums(breathvector==2)), nanstd(co2minimums(breathvector==2)))
-computecohensd(nholo, nanmean(co2minimums(holconvector==1)), nanstd(co2minimums(holconvector==1)), nconcon, nanmean(co2minimums(holconvector==2)), nanstd(co2minimums(holconvector==2)))
 
+[cohensd, cilow, cihigh] = computecohensd(nofpassive, nanmean(co2minimums(breathvector==1)), nanstd(co2minimums(breathvector==1)), nofactive, nanmean(co2minimums(breathvector==2)), nanstd(co2minimums(breathvector==2)))
+temp = bf.ttest2(co2minimums(breathvector==1),co2minimums(breathvector==2));
+bf01 = 1/temp
+
+[cohensd, cilow, cihigh] = computecohensd(nholo, nanmean(co2minimums(holconvector==1)), nanstd(co2minimums(holconvector==1)), nconcon, nanmean(co2minimums(holconvector==2)), nanstd(co2minimums(holconvector==2)))
+temp = bf.ttest2(co2minimums(holconvector==1),co2minimums(holconvector==2));
+bf01 = 1/temp
+
+clear temp ans cilow cihigh bf01
 
 %% Figures 1c and S1
 clear p tbl stats ans
@@ -174,6 +192,20 @@ for br = 1:2
     placeboDASCttestP{br} = p;
     placeboDASCttestStats{br} = stats;
     placeboDASCttestH{br} = p < (1-0.95^(1/11));
+    
+    % Compute Bayes Factors for comparison of breathwork to psychedelics
+    for scale = 1:11
+        [psilo_DASCbf_bf10{br}(scale),psilo_DASCbf_p{br}(scale)] = bf.ttest(DASCtemp(:,scale)-psiloDASC(:,scale))
+        [mdma_DASCbf_bf10{br}(scale),mdma_DASCbf_p{br}(scale)] = bf.ttest(DASCtemp(:,scale)-mdmaDASC(:,scale))
+        [lsd_DASCbf_bf10{br}(scale),lsd_DASCbf_p{br}(scale)] = bf.ttest(DASCtemp(:,scale)-lsdDASC(:,scale))
+        [placebo_DASCbf_bf10{br}(scale),placebo_DASCbf_p{br}(scale)] = bf.ttest(DASCtemp(:,scale)-placeboDASC(:,scale))
+    end
+    
+    psilo_bf_bf01{br} = 1./psilo_DASCbf_bf10{br};
+    mdma_bf_bf01{br} = 1./mdma_DASCbf_bf10{br};
+    lsd_bf_bf01{br} = 1./lsd_DASCbf_bf10{br};
+    placebo_bf_bf01{br} = 1./placebo_DASCbf_bf10{br};
+    
 end
 
 
@@ -190,14 +222,20 @@ end
 
 [p,tbl,stats] = anovan(anovaDASCtemp,{anovabreathtemp,anovascaletemp},'model','interaction','varnames',{'passive-active','DASC scale'});
 
-% Cohen's D of main effects
+% Cohen's D and Bayes Factors of main effects
 vector1 = DASCmatrix(breathvector==1,:);
 vector2 = DASCmatrix(breathvector==2,:);
 vector1 = vector1(:);
 vector2 = vector2(:);
-computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2))
+[cohensd, cilow, cihigh] = computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2))
+temp = bf.ttest2(vector1,vector2);
+bf01 = 1/temp
 
 cohensdtemp = [];
+cilowtemp =  NaN*ones(11,11);
+cihightemp =  NaN*ones(11,11);
+bf01temp =  NaN*ones(11,11);
+
 for subs1 = 1:10
     for subs2 = subs1+1:11
         
@@ -205,7 +243,15 @@ for subs1 = 1:10
         vector2 = DASCmatrix(:,subs2);
         vector1 = vector1(:);
         vector2 = vector2(:);
-        cohensdtemp(subs1,subs2) = computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2));
+        [cohensd, cilow, cihigh] = = computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2));
+        
+        cohensdtemp(subs1,subs2) = cohensd;
+        cilowtemp(subs1,subs2) = cilow;
+        cihightemp(subs1,subs2) = cihigh;
+        
+        temp = bf.ttest2(vector1,vector2);
+        bf01temp(subs1,subs2) = 1/temp;
+    
     end
 end
 
@@ -213,7 +259,7 @@ hold off
 
 clear h p ci tbl stats anovascaletemp anovabreathtemp anovaDASCtemp scale
 clear vector1 vector2 subs1 subs2 cohensdtemp
-clear tech br
+clear tech br temp cohensd cilow cihigh
 
 %% Figure 2B
 clear p tbl stats *ttest* ans
@@ -360,6 +406,18 @@ for br = 1:2
     mdmaMEQttestStats{br} = stats;
     mdmaMEQttestH{br} = p < (1-0.95^(1/4)); 
     
+    % Compute Bayes Factors breathwork - psychedelics
+    for meqscales = 1:4
+        [psilo_MEQbf_bf10{br}(meqscales),psilo_MEQbf_p{br}(meqscales)] = bf.ttest(MEQtemp(:,meqscales)-MEQpsilo(:,meqscales))
+        [mdma_MEQbf_bf10{br}(meqscales),mdma_MEQbf_p{br}(meqscales)] = bf.ttest(MEQtemp(:,meqscales)-MEQmdma(:,meqscales))
+        [lsd_MEQbf_bf10{br}(meqscales),lsd_MEQbf_p{br}(meqscales)] = bf.ttest(MEQtemp(:,meqscales)-MEQlsd(:,meqscales))
+        [placebo_MEQbf_bf10{br}(meqscales),placebo_MEQbf_p{br}(meqscales)] = bf.ttest(MEQtemp(:,meqscales)-MEQplacebo(:,meqscales))
+    end
+    psilo_MEQbf_bf01{br} = 1./psilo_MEQbf_bf10{br};
+    mdma_MEQbf_bf01{br} = 1./mdma_MEQbf_bf10{br};
+    lsd_MEQbf_bf01{br} = 1./lsd_MEQbf_bf10{br};
+    placebo_MEQbf_bf01{br} = 1./placebo_MEQbf_bf10{br};
+    
 end
 
 MEQtemp = MEQmatrix(breathSURVEYvector==1,1:4); 
@@ -382,9 +440,16 @@ vector1 = MEQmatrix(breathSURVEYvector==1,:);
 vector2 = MEQmatrix(breathSURVEYvector==2,:);
 vector1 = vector1(:);
 vector2 = vector2(:);
-computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2))
+[cohensd, cilow, cihigh] = computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2))
+temp = bf.ttest2(vector1,vector2);
+bf01 = 1/temp
 
-cohensdtemp = [];
+
+cohensdtemp = NaN*ones(4,4);
+cilowtemp = NaN*ones(4,4);
+cihightemp = NaN*ones(4,4);
+bf01temp = NaN*ones(4,4);
+
 for subs1 = 1:3
     for subs2 = subs1+1:4
         
@@ -392,12 +457,19 @@ for subs1 = 1:3
         vector2 = MEQmatrix(:,subs2);
         vector1 = vector1(:);
         vector2 = vector2(:);
-        cohensdtemp(subs1,subs2) = computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2));
+        [cohensd, cilow, cihigh] = cohensdtemp(subs1,subs2) = computecohensd(length(vector1),nanmean(vector1),nanstd(vector1),length(vector2),nanmean(vector2),nanstd(vector2));
+        cohensdtemp(subs1,subs2) = cohensd;
+        cilowtemp(subs1,subs2) = cilow;
+        cihightemp(subs1,subs2) = cihigh;
+        
+        temp = bf.ttest2(vector1,vector2);
+        bf01temp(subs1,subs2) = 1/temp;
+    
     end
 end
 
 clear br tech anovascaletemp anovabreathtemp *MEQtemp h ci ans
-clear scale subs* vector1 vector2 
+clear scale subs* vector1 vector2 cohensd cilow cihigh
 
 %% Figure 2C-D
 clear p  tbl stats *ttest*
@@ -434,12 +506,26 @@ ylim([0 5])
 [p,tbl,stats] = anovan(depthmaximums,{breathvector,holconvector},'model','interaction','varnames',{'passive-active','hol-conn'});
 
 % Cohen's D comparisons for anovas
-computecohensd(nofpassive, nanmean(depthmeans(breathvector==1)), nanstd(depthmeans(breathvector==1)), nofactive, nanmean(depthmeans(breathvector==2)), nanstd(depthmeans(breathvector==2)))
-computecohensd(nholo, nanmean(depthmeans(holconvector==1)), nanstd(depthmeans(holconvector==1)), nconcon, nanmean(depthmeans(holconvector==2)), nanstd(depthmeans(holconvector==2)))
-computecohensd(nofpassive, nanmean(depthmaximums(breathvector==1)), nanstd(depthmaximums(breathvector==1)), nofactive, nanmean(depthmaximums(breathvector==2)), nanstd(depthmaximums(breathvector==2)))
-computecohensd(nholo, nanmean(depthmaximums(holconvector==1)), nanstd(depthmaximums(holconvector==1)), nconcon, nanmean(depthmaximums(holconvector==2)), nanstd(depthmaximums(holconvector==2)))
+[cohensd, cilow, cihigh] = computecohensd(nofpassive, nanmean(depthmeans(breathvector==1)), nanstd(depthmeans(breathvector==1)), nofactive, nanmean(depthmeans(breathvector==2)), nanstd(depthmeans(breathvector==2)))
+temp = bf.ttest2(depthmeans(breathvector==1),depthmeans(breathvector==2));
+bf01 = 1/temp
 
-computecohensd(nofpassive, nanmean(depthmeans(breathvector==1 & holconvector==1)), nanstd(depthmeans(breathvector==1& holconvector==1)), nofactive, nanmean(depthmeans(breathvector==1 & holconvector==2)), nanstd(depthmeans(breathvector==1 & holconvector==2)))
+[cohensd, cilow, cihigh] = computecohensd(nholo, nanmean(depthmeans(holconvector==1)), nanstd(depthmeans(holconvector==1)), nconcon, nanmean(depthmeans(holconvector==2)), nanstd(depthmeans(holconvector==2)))
+temp = bf.ttest2(depthmeans(holconvector==1),depthmeans(holconvector==2));
+bf01 = 1/temp
+
+[cohensd, cilow, cihigh] = computecohensd(nofpassive, nanmean(depthmaximums(breathvector==1)), nanstd(depthmaximums(breathvector==1)), nofactive, nanmean(depthmaximums(breathvector==2)), nanstd(depthmaximums(breathvector==2)))
+temp = bf.ttest2(depthmaximums(breathvector==1),depthmaximums(breathvector==2));
+bf01 = 1/temp
+
+[cohensd, cilow, cihigh] = computecohensd(nholo, nanmean(depthmaximums(holconvector==1)), nanstd(depthmaximums(holconvector==1)), nconcon, nanmean(depthmaximums(holconvector==2)), nanstd(depthmaximums(holconvector==2)))
+temp = bf.ttest2(depthmaximums(holconvector==1),depthmaximums(holconvector==2));
+bf01 = 1/temp
+
+
+[cohensd, cilow, cihigh] = computecohensd(nofpassive, nanmean(depthmeans(breathvector==1 & holconvector==1)), nanstd(depthmeans(breathvector==1& holconvector==1)), nofactive, nanmean(depthmeans(breathvector==1 & holconvector==2)), nanstd(depthmeans(breathvector==1 & holconvector==2)))
+temp = bf.ttest2(depthmeans(breathvector==1 & holconvector==1),depthmeans(breathvector==1 & holconvector==2));
+bf01 = 1/temp
 
 % Extra figure  - individual trajectories
 figure;
@@ -493,6 +579,13 @@ hold off
 
 
 
+[r,p,rcilow,rcihigh]=corrcoef(nanmean(co2times(breathvector==2 & holconvector==1,:)),nanmean(co2times(breathvector==2 & holconvector==2,:)))
+[r,p,rcilow,rcihigh]=corrcoef(nanmean(depthtimes(breathvector==2 & holconvector==1,:)),nanmean(depthtimes(breathvector==2 & holconvector==2,:)))
+[r,p,rcilow,rcihigh]=corrcoef(nanmean(depthtimes(breathvector==1 & holconvector==1,:)),nanmean(depthtimes(breathvector==2 & holconvector==1,:)))
+[r,p,rcilow,rcihigh]=corrcoef(nanmean(depthtimes(breathvector==1 & holconvector==2,:)),nanmean(depthtimes(breathvector==2 & holconvector==2,:)))
+
+
+
 %% Supp. Figure S2
 
 clear r p tbl tech
@@ -508,17 +601,16 @@ DASCdepthcorrels = [];
 for tech = 1:2
     DASCholcon = DASCmatrix(holconvector==tech,:);
     depthholcon = depthmeans(holconvector==tech);
-    [r{tech},p{tech}]=corrcoef([DASCholcon,depthholcon]);
+    [r{tech},p{tech},rcilow{tech},rcihigh{tech}]=corrcoef([DASCholcon,depthholcon]);
     DASCdepthcorrels(:,tech) = r{tech}(:,end-1);
     DASCdepthcorrelpvalues(:,tech) = p{tech}(:,end-1);
 end
 
-[r{3},p{3}]=corrcoef([DASCmatrix,depthmeans]);
+[r{3},p{3},rcilow{3},rcihigh{3}]= corrcoef([DASCmatrix,depthmeans]);
 DASCdepthcorrels(:,3) = r{3}(:,end);
 DASCdepthcorrelpvalues(:,3) = p{3}(:,end);
 DASCdepthcorrels (12,:)=[];
 DASCdepthcorrelpvalues (12,:)=[];
-
 
 
 nanmean(DASCdepthcorrels(:,3))
@@ -531,10 +623,11 @@ nanstd(DASCdepthcorrels(:,3))
 MEQhandsignvector = depthmeans([1:15,31:48]);
 
 for scale = 1:5
-    [rMEQ,pMEQ]=corrcoef(MEQmatrix(:,scale),MEQhandsignvector,'rows','pairwise')
+    [rMEQ,pMEQ,rcilowMEQ,rcihighMEQ]=corrcoef(MEQmatrix(:,scale),MEQhandsignvector,'rows','pairwise')
     MEQcorr(scale) = rMEQ(2);
     MEQcorrP(scale) = pMEQ(2);    
 end
+
 
 % total figure
 figure;
@@ -558,9 +651,9 @@ clear scale tech r p rMEQ pMEQ DASCdepth*
 techcolor = {[0.6 0.6 1;1 0.6 0.6],[0.1 0.1 0.8 ; 0.8 0.1 0.1]};
 % Holo in blue, Conn in red, lighter colors = passive breath
 
-[corrtemp,corrtempP] = corrcoef([co2means,depthmeans])
-[corrtempH,corrtempHP] = corrcoef([co2means(holconvector==1),depthmeans(holconvector==1)],'rows','pairwise')
-[corrtempC,corrtempCP] = corrcoef([co2means(holconvector==2),depthmeans(holconvector==2)],'rows','pairwise')
+[corrtemp,corrtempP,corrtemprcilow,corrtemprcihigh] = corrcoef([co2means,depthmeans])
+[corrtempH,corrtempHP,corrtempHrcilow,corrtempHrcihigh] = corrcoef([co2means(holconvector==1),depthmeans(holconvector==1)],'rows','pairwise')
+[corrtempC,corrtempCP,corrtempCrcilow,corrtempCrcihigh] = corrcoef([co2means(holconvector==2),depthmeans(holconvector==2)],'rows','pairwise')
 
 figure;
 hold on
@@ -587,11 +680,11 @@ corrtemp = corrcoef([co2times(:),depthtimes(:)],'rows','pairwise')
 
 ctemp1 = co2times(holconvector==1,:);
 ctemp2 = depthtimes(holconvector==1,:);
-[corrtempH,corrtempHP]  = corrcoef([ctemp1(:),ctemp2(:)],'rows','pairwise')
+[corrtempH,corrtempHP,corrtempHrcilow,corrtempHrcihigh] = corrcoef([ctemp1(:),ctemp2(:)],'rows','pairwise')
 
 ctemp1 = co2times(holconvector==2,:);
 ctemp2 = depthtimes(holconvector==2,:);
-[corrtempC,corrtempCP] = corrcoef([ctemp1(:),ctemp2(:)],'rows','pairwise')
+[corrtempC,corrtempCP,corrtempCrcilow,corrtempCrcihigh] = corrcoef([ctemp1(:),ctemp2(:)],'rows','pairwise')
 
 figure;
 hold on
@@ -762,7 +855,7 @@ clear cmap br time *Trajectories*
 %% Supp. Figure S1 - Individual trajectories
 close all
 
-subjectvector = [60:ntotal];
+subjectvector = [1:ntotal];
 
 if holconvector(subjectvector) == 1
     cmap = [0 0 0.6; 0 0 0.8; 0.1 0.1 0.9; 0.2 0.2 1 ; 0.5 0.5 1;0.7 0.7 1];
@@ -861,8 +954,12 @@ ylim([0 15])
 % nanmean(QIDSmatrix(breathSURVEYvector==1,1:2))
 % nanstd(QIDSmatrix(breathSURVEYvector==1,1:2))
 [h,p,ci,stats] = ttest(QIDSmatrix(breathSURVEYvector==2,1),QIDSmatrix(breathSURVEYvector==2,2))
-[h,p,ci,stats] = ttest(QIDSmatrix(breathSURVEYvector==1,1),QIDSmatrix(breathSURVEYvector==1,2))
+temp = bf.ttest(QIDSmatrix(breathSURVEYvector==2,2) - QIDSmatrix(breathSURVEYvector==2,1));
+bf01 = 1/temp
 
+[h,p,ci,stats] = ttest(QIDSmatrix(breathSURVEYvector==1,1),QIDSmatrix(breathSURVEYvector==1,2))
+temp = bf.ttest(QIDSmatrix(breathSURVEYvector==1,2) - QIDSmatrix(breathSURVEYvector==1,1));
+bf01 = 1/temp
 
 % Figure 4c-d : WEMBWS changes
 figure;
@@ -888,9 +985,14 @@ ylim([30 70])
 % nanmean(WEMBWSmatrix(breathSURVEYvector==1,1:2))
 % nanstd(WEMBWSmatrix(breathSURVEYvector==1,1:2))
 [h,p,ci,stats] = ttest(WEMBWSmatrix(breathSURVEYvector==2,1),WEMBWSmatrix(breathSURVEYvector==2,2))
-[h,p,ci,stats] = ttest(WEMBWSmatrix(breathSURVEYvector==1,1),WEMBWSmatrix(breathSURVEYvector==1,2))
+temp = bf.ttest(WEMBWSmatrix(breathSURVEYvector==2,2) - WEMBWSmatrix(breathSURVEYvector==2,1));
+bf01 = 1/temp
 
-clear br cmap
+[h,p,ci,stats] = ttest(WEMBWSmatrix(breathSURVEYvector==1,1),WEMBWSmatrix(breathSURVEYvector==1,2))
+temp = bf.ttest(WEMBWSmatrix(breathSURVEYvector==1,2) - WEMBWSmatrix(breathSURVEYvector==1,1));
+bf01 = 1/temp
+
+clear br cmap temp
 
 %% Extra figures for Figure 4E
 % Figure 4E is generated in R
@@ -912,31 +1014,31 @@ MEQtotalscore = MEQmatrix(:,5);
 figure;
 subplot(1,5,1)
 scatter(co2meansSURVEY,QIDSchange,'k')
-[r,p]= corrcoef([co2meansSURVEY QIDSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh]= corrcoef([co2meansSURVEY QIDSchange],'rows','pairwise')
 text (10,-13,['r = ',num2str(r(2))])
 text (10,-15,['p = ',num2str(p(2))])
 
 subplot(1,5,2)
 scatter(MEQtotalscore,QIDSchange,'k')
-[r,p]= corrcoef([MEQtotalscore QIDSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh]= corrcoef([MEQtotalscore QIDSchange],'rows','pairwise')
 text (1,-13,['r = ',num2str(r(2))])
 text (1,-15,['p = ',num2str(p(2))])
 
 subplot(1,5,3)
 scatter(QIDS_DASC_OB ,QIDSchange,'k')
-[r,p]= corrcoef([QIDS_DASC_OB QIDSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([QIDS_DASC_OB QIDSchange],'rows','pairwise')
 text (1,-13,['r = ',num2str(r(2))])
 text (1,-15,['p = ',num2str(p(2))])
 
 subplot(1,5,4)
 scatter(QIDS_DASC_AED,QIDSchange,'k')
-[r,p]= corrcoef([QIDS_DASC_AED QIDSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([QIDS_DASC_AED QIDSchange],'rows','pairwise')
 text (1,-13,['r = ',num2str(r(2))])
 text (1,-15,['p = ',num2str(p(2))])
 
 subplot(1,5,5)
 scatter(QIDS_DASC_VR ,QIDSchange,'k')
-[r,p]= corrcoef([QIDS_DASC_VR QIDSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([QIDS_DASC_VR QIDSchange],'rows','pairwise')
 text (1,-13,['r = ',num2str(r(2))])
 text (1,-15,['p = ',num2str(p(2))])
 
@@ -945,32 +1047,32 @@ text (1,-15,['p = ',num2str(p(2))])
 figure;
 subplot(1,5,1)
 scatter(co2meansSURVEY,WEMBWSchange,'k')
-[r,p]= corrcoef([co2meansSURVEY WEMBWSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([co2meansSURVEY WEMBWSchange],'rows','pairwise')
 text (20,30,['r = ',num2str(r(2))])
 text (20,27,['p = ',num2str(p(2))])
 
 subplot(1,5,2)
 scatter(MEQtotalscore,WEMBWSchange,'k')
-[r,p]= corrcoef([MEQtotalscore WEMBWSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([MEQtotalscore WEMBWSchange],'rows','pairwise')
 text (1,30,['r = ',num2str(r(2))])
 text (1,27,['p = ',num2str(p(2))])
 
 
 subplot(1,5,3)
 scatter(QIDS_DASC_OB ,WEMBWSchange,'k')
-[r,p]= corrcoef([QIDS_DASC_OB WEMBWSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([QIDS_DASC_OB WEMBWSchange],'rows','pairwise')
 text (1,30,['r = ',num2str(r(2))])
 text (1,27,['p = ',num2str(p(2))])
 
 subplot(1,5,4)
 scatter(QIDS_DASC_AED,WEMBWSchange,'k')
-[r,p]= corrcoef([QIDS_DASC_AED WEMBWSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([QIDS_DASC_AED WEMBWSchange],'rows','pairwise')
 text (1,30,['r = ',num2str(r(2))])
 text (1,27,['p = ',num2str(p(2))])
 
 subplot(1,5,5)
 scatter(QIDS_DASC_VR ,WEMBWSchange,'k')
-[r,p]= corrcoef([QIDS_DASC_VR WEMBWSchange],'rows','pairwise')
+[r,p,rcilow, rcihigh] = corrcoef([QIDS_DASC_VR WEMBWSchange],'rows','pairwise')
 text (1,30,['r = ',num2str(r(2))])
 text (1,27,['p = ',num2str(p(2))])
 
@@ -1000,6 +1102,8 @@ xlim([0.5 2.5])
 ylim([1 7])
 
 [h,p,ci,stats] = ttest(amylasematrix(breathMOLECULARvector==2,1),amylasematrix(breathMOLECULARvector==2,2))
+temp = bf.ttest(amylasematrix(breathMOLECULARvector==2,2) - amylasematrix(breathMOLECULARvector==2,1));
+bf01 = 1/temp
 
 
 % Figure 5c-d: IL1b change
@@ -1021,14 +1125,19 @@ xlim([0.5 2.5])
 ylim([1 8])
 
 [h,p,ci,stats] = ttest(IL1bmatrix(breathMOLECULARvector==2,1),IL1bmatrix(breathMOLECULARvector==2,2))
-
+temp = bf.ttest(IL1bmatrix(breathMOLECULARvector==2,2)- IL1bmatrix(breathMOLECULARvector==2,1));
+bf01 = 1/temp
 
 % Test differences between breathwork styles
 AmylaseChange = ELISAtable.amylase_change;
 IL1bChange = ELISAtable.IL1b_change;
 [h,p,ci,stats] = ttest2(AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2 ))
-[h,p,ci,stats] = ttest2(IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2 ))
+temp = bf.ttest2(AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2))
+bf01 = 1/temp
 
+[h,p,ci,stats] = ttest2(IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2 ))
+temp = bf.ttest2(IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2))
+bf01 = 1/temp
 
 clear h p ci stats
 
@@ -1043,6 +1152,23 @@ Workstatus = SubjectInfo.work_status;
 % nanmean(Age)
 % nanmean(Age(breathvector==1))
 % nanmean(Age(breathvector==2))
+
+%% Supp Table: Are breathwork styles significantly different?
+
+
+[h,p,ci,stats] = ttest2(WEMBWSchange(breathSURVEYvector==2 & holconSURVEYvector==1),WEMBWSchange(breathSURVEYvector==2 & holconSURVEYvector==2))
+[cohensd, cilow, cihigh] = computecohensd(11, nanmean(WEMBWSchange(breathSURVEYvector==2 & holconSURVEYvector==1)), nanstd(WEMBWSchange(breathSURVEYvector==2 & holconSURVEYvector==1)), 14, nanmean(WEMBWSchange(breathSURVEYvector==2 & holconSURVEYvector==2)), nanstd(WEMBWSchange(breathSURVEYvector==2 & holconSURVEYvector==2)))
+
+[h,p,ci,stats] = ttest2(QIDSchange(breathSURVEYvector==2 & holconSURVEYvector==1),QIDSchange(breathSURVEYvector==2 & holconSURVEYvector==2))
+[cohensd, cilow, cihigh] = computecohensd(11, nanmean(QIDSchange(breathSURVEYvector==2 & holconSURVEYvector==1)), nanstd(QIDSchange(breathSURVEYvector==2 & holconSURVEYvector==1)), 14, nanmean(QIDSchange(breathSURVEYvector==2 & holconSURVEYvector==2)), nanstd(QIDSchange(breathSURVEYvector==2 & holconSURVEYvector==2)))
+
+
+[h,p,ci,stats] = ttest2(AmylaseChange(breathMOLECULARvector==2 & holconMOLECULARvector== 1),AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector==2))
+[cohensd, cilow, cihigh] = computecohensd(11, nanmean(AmylaseChange(breathMOLECULARvector==2 & holconMOLECULARvector==1)), nanstd(AmylaseChange(breathMOLECULARvector==2 & holconMOLECULARvector==1)), 14, nanmean(AmylaseChange(breathMOLECULARvector==2 & holconMOLECULARvector==2)), nanstd(AmylaseChange(breathMOLECULARvector==2 & holconMOLECULARvector==2)))
+
+[h,p,ci,stats] = ttest2(IL1bChange(breathMOLECULARvector==2 & holconMOLECULARvector==1),IL1bChange(breathMOLECULARvector==2 & holconMOLECULARvector==2))
+[cohensd, cilow, cihigh] = computecohensd(11, nanmean(IL1bChange(breathMOLECULARvector==2 & holconMOLECULARvector==1)), nanstd(IL1bChange(breathMOLECULARvector==2 & holconMOLECULARvector==1)), 14, nanmean(IL1bChange(breathMOLECULARvector==2 & holconMOLECULARvector==2)), nanstd(IL1bChange(breathMOLECULARvector==2 & holconMOLECULARvector==2)))
+
 
 
 %%
