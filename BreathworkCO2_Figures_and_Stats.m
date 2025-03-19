@@ -758,6 +758,8 @@ for br = 1:2
     depthSEMTrajectoriesCONN(br,1:noftimepoints)= nanstd(depthtimes(find(breathvector==br & holconvector==2),:))/sqrt(length(find(breathvector==br & holconvector==2)));
 end
 
+
+
 subplot(1,2,2)
 hold on
 for time = 1:noftimepoints
@@ -782,6 +784,9 @@ end
 hold off
 xlim([0 50])
 ylim([0 5])
+
+[r, p, rlow, rhigh] = corrcoef(depthMeanTrajectoriesCONN(1,:),depthMeanTrajectoriesCONN(2,:))
+[r, p, rlow, rhigh] = corrcoef(depthMeanTrajectoriesHOLO(2,:),depthMeanTrajectoriesHOLO(3,:))
 
 
 
@@ -854,7 +859,7 @@ xlim([0 50])
 ylim([0 5])
 
 
-clear cmap br time *Trajectories* 
+clear cmap br time %*Trajectories* 
 
 %% Supp. Figure S1 - Individual trajectories
 close all
@@ -953,15 +958,16 @@ xlim([0.5 2.5])
 ylim([0 15])
 
 
-% nanmean(QIDSmatrix(breathSURVEYvector==2,1:2))
-% nanstd(QIDSmatrix(breathSURVEYvector==2,1:2))
-% nanmean(QIDSmatrix(breathSURVEYvector==1,1:2))
-% nanstd(QIDSmatrix(breathSURVEYvector==1,1:2))
+
+% active breathers
 [h,p,ci,stats] = ttest(QIDSmatrix(breathSURVEYvector==2,1),QIDSmatrix(breathSURVEYvector==2,2))
+cohensd = computepairedcohensd(QIDSmatrix(breathSURVEYvector==2,1),QIDSmatrix(breathSURVEYvector==2,2))
 temp = bf.ttest(QIDSmatrix(breathSURVEYvector==2,2) - QIDSmatrix(breathSURVEYvector==2,1));
 bf01 = 1/temp
 
+% passive breathers
 [h,p,ci,stats] = ttest(QIDSmatrix(breathSURVEYvector==1,1),QIDSmatrix(breathSURVEYvector==1,2))
+cohensd = computepairedcohensd(QIDSmatrix(breathSURVEYvector==1,1),QIDSmatrix(breathSURVEYvector==1,2))
 temp = bf.ttest(QIDSmatrix(breathSURVEYvector==1,2) - QIDSmatrix(breathSURVEYvector==1,1));
 bf01 = 1/temp
 
@@ -984,15 +990,15 @@ xlim([0.5 2.5])
 ylim([30 70])
 
 
-% nanmean(WEMBWSmatrix(breathSURVEYvector==2,1:2))
-% nanstd(WEMBWSmatrix(breathSURVEYvector==2,1:2))
-% nanmean(WEMBWSmatrix(breathSURVEYvector==1,1:2))
-% nanstd(WEMBWSmatrix(breathSURVEYvector==1,1:2))
+% active breathers
 [h,p,ci,stats] = ttest(WEMBWSmatrix(breathSURVEYvector==2,1),WEMBWSmatrix(breathSURVEYvector==2,2))
+cohensd = computepairedcohensd(WEMBWSmatrix(breathSURVEYvector==2,1),WEMBWSmatrix(breathSURVEYvector==2,2))
 temp = bf.ttest(WEMBWSmatrix(breathSURVEYvector==2,2) - WEMBWSmatrix(breathSURVEYvector==2,1));
 bf01 = 1/temp
 
+% passive breathers
 [h,p,ci,stats] = ttest(WEMBWSmatrix(breathSURVEYvector==1,1),WEMBWSmatrix(breathSURVEYvector==1,2))
+cohensd = computepairedcohensd(WEMBWSmatrix(breathSURVEYvector==1,1),WEMBWSmatrix(breathSURVEYvector==1,2))
 temp = bf.ttest(WEMBWSmatrix(breathSURVEYvector==1,2) - WEMBWSmatrix(breathSURVEYvector==1,1));
 bf01 = 1/temp
 
@@ -1080,7 +1086,7 @@ scatter(QIDS_DASC_VR ,WEMBWSchange,'k')
 text (1,30,['r = ',num2str(r(2))])
 text (1,27,['p = ',num2str(p(2))])
 
-clear MEQtotalscore QIDS_DASC* r p br cmap
+clear   r p br cmap
 
 %% Figure 5
 
@@ -1105,10 +1111,17 @@ errorbar(nanmean(amylasematrix(breathMOLECULARvector==1,1:2)),nanstd(amylasematr
 xlim([0.5 2.5])
 ylim([1 7])
 
+%active breathers
 [h,p,ci,stats] = ttest(amylasematrix(breathMOLECULARvector==2,1),amylasematrix(breathMOLECULARvector==2,2))
+cohensd = computepairedcohensd(amylasematrix(breathMOLECULARvector==2,1),amylasematrix(breathMOLECULARvector==2,2))
 temp = bf.ttest(amylasematrix(breathMOLECULARvector==2,2) - amylasematrix(breathMOLECULARvector==2,1));
 bf01 = 1/temp
 
+%passive breathers
+[h,p,ci,stats] = ttest(amylasematrix(breathMOLECULARvector==1,1),amylasematrix(breathMOLECULARvector==1,2))
+cohensd = computepairedcohensd(amylasematrix(breathMOLECULARvector==1,1),amylasematrix(breathMOLECULARvector==1,2))
+temp = bf.ttest(amylasematrix(breathMOLECULARvector==1,2) - amylasematrix(breathMOLECULARvector==1,1));
+bf01 = 1/temp
 
 % Figure 5c-d: IL1b change
 figure;
@@ -1128,20 +1141,18 @@ errorbar(nanmean(IL1bmatrix(breathMOLECULARvector==1,1:2)),nanstd(IL1bmatrix(bre
 xlim([0.5 2.5])
 ylim([1 8])
 
+%active breathers
 [h,p,ci,stats] = ttest(IL1bmatrix(breathMOLECULARvector==2,1),IL1bmatrix(breathMOLECULARvector==2,2))
+cohensd = computepairedcohensd(IL1bmatrix(breathMOLECULARvector==2,1),IL1bmatrix(breathMOLECULARvector==2,2))
 temp = bf.ttest(IL1bmatrix(breathMOLECULARvector==2,2)- IL1bmatrix(breathMOLECULARvector==2,1));
 bf01 = 1/temp
 
-% Test differences between breathwork styles
-AmylaseChange = ELISAtable.amylase_change;
-IL1bChange = ELISAtable.IL1b_change;
-[h,p,ci,stats] = ttest2(AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2 ))
-temp = bf.ttest2(AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),AmylaseChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2))
+%passive breathers
+[h,p,ci,stats] = ttest(IL1bmatrix(breathMOLECULARvector==1,1),IL1bmatrix(breathMOLECULARvector==1,2))
+cohensd = computepairedcohensd(IL1bmatrix(breathMOLECULARvector==1,1),IL1bmatrix(breathMOLECULARvector==1,2))
+temp = bf.ttest(IL1bmatrix(breathMOLECULARvector==1,2)- IL1bmatrix(breathMOLECULARvector==1,1));
 bf01 = 1/temp
 
-[h,p,ci,stats] = ttest2(IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2 ))
-temp = bf.ttest2(IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 1),IL1bChange(breathMOLECULARvector== 2 & holconMOLECULARvector== 2))
-bf01 = 1/temp
 
 clear h p ci stats
 
